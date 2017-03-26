@@ -1,0 +1,97 @@
+
+typedef struct {
+   unsigned char        deviceType;
+   unsigned char        majorVersion;
+   unsigned char        minorVersion;
+   unsigned char        absRelFlags;
+   unsigned char        centeringFlags;
+   unsigned char        reserved[5];
+} StaticDeviceData;
+//d2 says:
+typedef struct cyberman_info {
+        ubyte device_type;
+        ubyte major_version;
+        ubyte minor_version;
+        ubyte x_descriptor;
+        ubyte y_descriptor;
+        ubyte z_descriptor;
+        ubyte pitch_descriptor;
+        ubyte roll_descriptor;
+        ubyte yaw_descriptor;
+        ubyte reserved;
+} cyberman_info;
+//rott says:
+typedef struct
+{
+   unsigned char        deviceType;
+   unsigned char        majorVersion;
+        unsigned char   minorVersion;
+   unsigned char        coordDescriptor[6];
+   unsigned char        reserved[1];
+} SWIFT_StaticData;
+
+
+typedef struct {
+   short        x;
+   short        y;
+   short        z;
+   short        pitch;
+   short        roll;
+   short        yaw;
+   short        buttons;
+} SWIFT_3DStatus;
+
+============================================================================
+Init:
+ eax = 0x53C1 - Get static device data
+ es = pointer to StaticDeviceData structure
+
+Call interrupt 0x33 (Mouse interrupt)
+
+Returns:
+ eax = 1 -> success
+
+deviceType = 0  -> No SWIFT device
+deviceType = 1  -> Logitech Cyberman
+
+============================================================================
+Dynamic Device Data:
+  eax = 0x53C2
+
+Call interrupt 0x33 (Mouse interrupt)
+
+Returns:
+  eax = 1 -> SDD_EXTERNAL_POWER_CONNECTED
+        2 -> SDD_EXTERNAL_POWER_TOO_HIGH
+
+============================================================================
+Read Cyberman status
+ eax = 0x5301 - Get Position and Buttons
+ es = pointer to SWIFT_3DStatus structure
+
+Call interrupt 0x33 (Mouse interrupt)
+
+Structure is filled with data
+
+============================================================================
+Tactile feedback
+  eax = 0x5330
+  ebx = two packed bytes; lower byte = 'on'; upper byte = 'off'.
+        'on': motor on-time per cycle, in 200ths of second
+        'off': motor off-time per cycle, in 200ths of second
+  ecx = duration of burst, in 25ths of second
+
+Call interrupt 0x33 (Mouse interrupt)
+
+
+
+---------
+Mouse driver lets you watch for mouse movement with 0xc;
+SWIFT driver provides extra mouse buttons at bits:
+  1<<9   = X (?)
+  1<<10  = Y (?)
+  1<<11  = Z
+  1<<12  = P
+  1<<13  = B
+  1<<14  = H
+  1<<15  = O (?)
